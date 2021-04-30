@@ -1,11 +1,13 @@
 name: dwr-sidewinder-nb
 channels:
-  - conda-forge
   - defaults
 dependencies:
-  - jupyterlab
-  - flask
-  - plotly
-  - flask-sqlalchemy
   - psycopg2
-prefix: C:\Users\Erik\miniconda3\envs\dwr-sidewinder-nb
+  - flask
+  - flask-sqlalchemy
+  - plotly
+  - jupyterlab
+  - geoalchemy2
+  - dash
+  - dash-bootstrap-components
+prefix: C:\Users\Erik\Anaconda3\envs\dwr-sidewinder-nb

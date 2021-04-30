@@ -133,11 +133,19 @@ create table if not exists projects_programs (
     primary key (project_id, program_id)
 );
 
+
+-- funding sources
+create table if not exists funding_sources(
+    id serial primary key,
+    funding_source numeric,
+    funding_available numeric
+)
+
 --project funding
 create table if not exists project_funding (
     id serial primary key,
     project_id integer references projects,
-    funding_source text,
+    funding_source integer references funding_sources,
     funding_amount numeric
 );
 
@@ -240,7 +248,7 @@ create table if not exists impacts (
 create table if not exists mitigation_needs (
     id serial primary key,
     mandate integer references mandates,
-    impact text,
+    impact integer references impacts,
     quantity numeric,
     unit integer references habitat_units,
     mitigation_type integer references mitigation_types,
@@ -265,4 +273,5 @@ create table if not exists cosmos_targets(
     quantity numeric,
     unit integer references habitat_units,
     target_type integer references habitat_types
+    target_date date
 );

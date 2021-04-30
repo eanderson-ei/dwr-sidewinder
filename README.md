@@ -10,6 +10,10 @@ To contribute to development, follow steps below.
 
 Download and install PostgreSQL. The database is hosted with the app instance on Heroku. Request the database URI from me. See [here](https://eanderson-ei.github.io/ei-dev/data-management/postgres-tutorial/) for step-by-step instructions.
 
+Install PostGIS
+
+Using the Stack Builder application downloaded with Postgres, install PostGIS (under spatial databases). Do not install PostGIS into the default folder, instead navigate to the location where Postgres is installed (C:/Program Files/)
+
 #### Install Packages
 
 Recreate the environment from the `environments.yml` file (`conda env create -f environment.yml`).
