@@ -9,7 +9,7 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import os
 
-from app import app_db, app_cosmos
+from apps import app_db, app_cosmos
 
 
 ### ---------------------------- NAV BAR ------------------------------- ###
