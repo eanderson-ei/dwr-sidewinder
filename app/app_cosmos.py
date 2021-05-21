@@ -14,7 +14,7 @@ from app import app, db
 ### ----------------------------- SETUP ---------------------------------- ###
 
 # Test Data
-df = pd.read_sql_table('view_cosmos_targets', conn=db.engine)
+df = pd.read_sql_table('view_cosmos_targets', con=db.engine)
 
 def plot_cosmos(df):
     fig = px.bar(df, x='habitat_type', y='quantity', color='cpa_name',
