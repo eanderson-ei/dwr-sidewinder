@@ -20,7 +20,9 @@ if ENV == 'dev':
         'postgresql://postgres:incentives@localhost/test2'
 else:
     app.server.debug = False
-    app.server.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+    uri = os.environ['DATABASE_URL']
+    uri = uri.replace("postgres://", "postgresql://", 1)
+    app.server.config['SQLALCHEMY_DATABASE_URI'] = uri  # Heroku needs to update URI for newer versions of Postgres
 
 # avoids warning in console
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
