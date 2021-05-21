@@ -3,6 +3,7 @@ flask-sqlalchemy
 psycopg2
 dash-bootstrap-components
 dash
+dash-daq
 geoalchemy2
 pandas
 gunicorn

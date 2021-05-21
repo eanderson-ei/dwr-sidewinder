@@ -20,7 +20,7 @@ if ENV == 'dev':
         'postgresql://postgres:incentives@localhost/test2'
 else:
     app.server.debug = False
-    app.server.config['SQLALCHEMY_DATBASE_URI'] = os.environ['DATABASE_URL']
+    app.server.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 # avoids warning in console
 app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
