@@ -1,0 +1,16 @@
+name: dwr-sidewinder-nb
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyterlab
+  - flask
+  - plotly
+  - flask-sqlalchemy
+  - psycopg2
+  - dash-bootstrap-components
+  - dash
+  - geoalchemy2
+  - pandas
+  - openpyxl
+prefix: C:\Users\Erik\miniconda3\envs\dwr-sidewinder-nb

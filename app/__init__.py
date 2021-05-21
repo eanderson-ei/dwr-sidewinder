@@ -1,20 +1,30 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+import dash
+import dash_bootstrap_components as dbc
 
-app = Flask(__name__)
+
+external_stylesheets = [dbc.themes.YETI]
+
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server, 
+                suppress_callback_exceptions=True,
+                external_stylesheets=external_stylesheets)
 
 ENV = 'dev'
 
 if ENV == 'dev':
-    app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:incentives@localhost/test'
+    app.server.debug = True
+    app.server.config['SQLALCHEMY_DATABASE_URI'] = \
+        'postgresql://postgres:incentives@localhost/test2'
 else:
-    app.debug = False
-    app.config['SQLALCHEMY_DATBASE_URI'] = ''
+    app.server.debug = False
+    app.server.config['SQLALCHEMY_DATBASE_URI'] = ''
 
 # avoids warning in console
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db = SQLAlchemy(app.server)
 
 # from app import routes
+

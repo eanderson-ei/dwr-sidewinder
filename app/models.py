@@ -18,16 +18,28 @@ project_fpts = db.Table(
     db.Column('fpts_id', db.Integer, db.ForeignKey('fpts.fpts_id'), primary_key=True)
 )
 
-project_project_statuses = db.Table(
-    'project_project_statuses',
+project_project_elements = db.Table(
+    'project_project_elements',
     db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
-    db.Column('project_elements', db.Integer, db.ForeignKey('project_elements.id'), primary_key=True)
+    db.Column('project_element', db.Integer, db.ForeignKey('project_elements.id'), primary_key=True)
 )
 
 credit_approver = db.Table(
     'credit_approver',
-    db.Column('credit_id', db.Integer, db.ForeignKey('project_mitigation.id'), primary_key=True),
+    db.Column('parcel_id', db.Integer, db.ForeignKey('mitigation_parcels.id'), primary_key=True),
     db.Column('agency', db.Integer, db.ForeignKey('agencies.id'), primary_key=True)
+)
+
+projects_counties = db.Table(
+    'projects_counties',
+    db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
+    db.Column('county', db.Integer, db.ForeignKey('counties.id'), primary_key=True)
+)
+
+projects_permits = db.Table(
+    'projects_permits',
+    db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
+    db.Column('permit', db.Integer, db.ForeignKey('mitigation_needs.id'), primary_key=True)
 )
 
 
@@ -44,7 +56,7 @@ class Implementer(db.Model):
     agency = db.Column(db.Integer, db.ForeignKey('agencies.id'), nullable=False)
     last_name = db.Column(db.String, nullable=False)
     first_name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
+    email = db.Column(db.String)
     
 
 class ProjectStatus(db.Model):
@@ -71,10 +83,10 @@ class ConservationPlanningArea(db.Model):
     cpa_name = db.Column(db.String, nullable=False)
 
 
-class ServiceArea(db.Model):
-    __tablename__ = 'service_areas'
+class WaterBody(db.Model):
+    __tablename__ = 'water_bodies'
     id = db.Column(db.Integer, primary_key=True)
-    service_area_name = db.Column(db.String, nullable=False)
+    waterbody_name = db.Column(db.String, nullable=False)
     
 
 class ProjectElement(db.Model):
@@ -93,19 +105,17 @@ class HabitatType(db.Model):
     __tablename__ = 'habitat_types'
     id = db.Column(db.Integer, primary_key=True)
     habitat_type = db.Column(db.String, nullable=False)
-    
-
-class HabitatUnit(db.Model):
-    __tablename__ = 'habitat_units'
-    id = db.Column(db.Integer, primary_key=True)
-    habitat_unit = db.Column(db.String, nullable=False)
+    unit = db.Column(db.String, nullable=False)
+    long_form = db.Column(db.String)
 
 
 class MitigationType(db.Model):
     __tablename__ = 'mitigation_types'
     id = db.Column(db.Integer, primary_key=True)
     mitigation_type = db.Column(db.String, nullable=False)
-
+    unit = db.Column(db.String, nullable=False)
+    long_form = db.Column(db.String)
+    
 
 # create each database table as a class
 class Project(db.Model):
@@ -114,22 +124,25 @@ class Project(db.Model):
     # columns  
     id = db.Column(db.Integer, primary_key=True)
     project_name = db.Column(db.String, unique=True, nullable=False)
-    implementer = db.Column(db.Integer, db.ForeignKey('implementers.id'), nullable=False)
-    project_status = db.Column(db.Integer, db.ForeignKey('project_statuses.id'), nullable=False)
-    project_completion_date = db.Column(db.DateTime, nullable=False)
+    project_nickname = db.Column(db.String)
+    implementer = db.Column(db.Integer, db.ForeignKey('implementers.id'))
+    project_status = db.Column(db.Integer, db.ForeignKey('project_statuses.id'))
+    project_completion_date = db.Column(db.DateTime)
     rfmp = db.Column(db.Integer, db.ForeignKey('rfmps.id'), nullable=False)
     county = db.Column(db.Integer, db.ForeignKey('counties.id'), nullable=False)
     cpa = db.Column(db.Integer, db.ForeignKey('conservation_planning_areas.id'), nullable=False)
-    coordinates = db.Column(Geometry('POINT'))  # in prod, test PostGIS extension
+    coordinate_x = db.Column(Geometry('POINT'))  # in prod, test PostGIS extension
+    coordinate_y = db.Column(Geometry('POINT'))
     waterbody = db.Column(db.String)
-    service_area = db.Column(db.Integer, db.ForeignKey('service_areas.id'), nullable=False)
     total_project_acres = db.Column(db.Float)
     project_map_file_location = db.Column(db.String)
-    service_area_map_file_location = db.Column(db.String)
-    project_cost = db.Column(db.Float)
+    project_cost_low = db.Column(db.Float)
+    project_cost_high = db.Column(db.Float)
+    fpts = db.Column(db.String)
     
     # relationships
-    habitat_outcomes = db.relationship('HabitatOutcome', backref='project', lazy=True)
+    habitat_parcels = db.relationship('HabitatParcel', backref='project', lazy=True)
+    mitigation_parcels = db.relationship('MitigationParcel', backref='project', lazy=True)
     programs = db.relationship('Program', secondary=projects_programs, 
                                lazy = 'subquery',
                                backref=db.backref('programs', lazy=True))
@@ -143,15 +156,15 @@ class HabitatParcel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     acres = db.Column(db.Float, nullable=False)
+    habitat_outcomes = db.relationship('HabitatOutcome', backref='parcel', lazy=True)
 
 
 class HabitatOutcome(db.Model):
     __tablename__ = 'habitat_outcomes'
     id = db.Column(db.Integer, primary_key=True)
     parcel_id = db.Column(db.Integer, db.ForeignKey('habitat_parcels.id'), nullable=False)
-    verified = db.Column(db.Boolean, nullable=False)
+    confidence = db.Column(db.String)
     quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer(), db.ForeignKey('habitat_units.id'), nullable=False)
     habitat_type = db.Column(db.Integer, db.ForeignKey('habitat_types.id'), nullable=False)
     
     def __repr__(self):
@@ -163,6 +176,7 @@ class MitigationParcel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     acres = db.Column(db.Float, nullable=False)
+    parcel_mitigation = db.relationship('ProjectMitigation', backref='parcel', lazy=True)
     
 
 class ProjectMitigation(db.Model):
@@ -170,54 +184,59 @@ class ProjectMitigation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     parcel_id = db.Column(db.Integer, db.ForeignKey('mitigation_parcels.id'), nullable=False)
     quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer, db.ForeignKey('habitat_units.id'), nullable=False)
     mitigation_type = db.Column(db.Integer, db.ForeignKey('mitigation_types.id'), nullable=False)
 
+
+class CreditPurchase(db.Model):
+    __tablename__ = 'credit_purchases'
+    id = db.Column(db.Integer, primary_key=True)
+    purchase_date = db.Column(db.DateTime)
+    credit_site = db.Column(db.String, nullable=False)
+    service_area_map_file_location = db.Column(db.String)
+
+
+class CreditValue(db.Model):
+    __tablename__ = 'credit_values'
+    id = db.Column(db.Integer, primary_key=True)
+    credit_id = db.Column(db.Integer, db.ForeignKey('credit_purchases.id'))
+    quantity = db.Column(db.Float, nullable=False)
+    mitigation_type = db.Column(db.Integer, db.ForeignKey('mitigation_types.id'), nullable=False)
+
+
+class MitigationNeed(db.Model):
+    __tablename__ = 'mitigation_needs'
+    id = db.Column(db.Integer, primary_key=True)
+    permit = db.Column(db.Integer, db.ForeignKey('permits.id'), nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+    needed_by = db.Column(db.DateTime, nullable=False)
+    mitigation_type = db.Column(db.Integer, db.ForeignKey('mitigation_types.id'), nullable=False)
+    
 
 class ProjectCommitment(db.Model):
     __tablename__ = 'project_commitments'
     id = db.Column(db.Integer, primary_key=True)
     parcel_id = db.Column(db.Integer, db.ForeignKey('mitigation_parcels.id'), nullable=False)
     proportion_committed = db.Column(db.Float)
-    committed_to = db.Column(db.String)
+    committed_to = db.Column(db.Integer, db.ForeignKey('permits.id'), nullable=False)
 
 
-class MitigationCredit(db.Model):
-    __tablename__ = 'mitigation_credits'
+class CreditCommitment(db.Model):
+    __tablename__ = 'credit_commitments'
     id = db.Column(db.Integer, primary_key=True)
-    purchase_date = db.Column(db.DateTime)
-    bank_name = db.Column(db.String, nullable=False)
-    quantity = db.Column(db.Float, nullable=False)
-    credit_type = db.Column(db.Integer, db.ForeignKey('mitigation_types.id'), nullable=False)
+    permit_id = db.Column(db.Integer, db.ForeignKey('permits.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    credit_id = db.Column(db.Integer, db.ForeignKey('credit_purchases.id'), nullable=False)
+ 
 
-
-class Mandate(db.Model):
-    __tablename__ = 'mandates'
+class Permit(db.Model):
+    __tablename__ = 'permits'
     id = db.Column(db.Integer, primary_key=True)
-    mandate_name = db.Column(db.String, nullable=False)
+    permit_name = db.Column(db.String, nullable=False)
 
-
-class Impact(db.Model):
-    __tablename__ = 'impacts'
-    id = db.Column(db.Integer, primary_key=True)
-    impact_name = db.Column(db.String)
-
-
-class MitigationNeed(db.Model):
-    __tablename__ = 'mitigation_needs'
-    id = db.Column(db.Integer, primary_key=True)
-    mandate = db.Column(db.Integer, db.ForeignKey('mandates.id'), nullable=False)
-    impact = db.Column(db.Integer, db.ForeignKey('impacts.id'), nullable=False)
-    quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer, db.ForeignKey('habitat_units.id'), nullable=False)
-    mitigation_type = db.Column(db.Integer, db.ForeignKey('mitigation_types.id'), nullable=False)
-    needed_by = db.Column(db.DateTime, nullable=False)
-    
 
 class FPTS(db.Model):
     __tablename__ = 'fpts'
-    id = db.Column(db.Integer, primary_key=True)
-    fpts_id = db.Column(db.Integer, unique=True, nullable=False)
+    fpts_id = db.Column(db.Integer, primary_key=True)
     
 
 class FundingSource(db.Model):
@@ -233,12 +252,12 @@ class ProjectFunding(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     funding_source = db.Column(db.Integer, db.ForeignKey('funding_sources.id'), nullable=False)
     funding_amount = db.Column(db.Float, nullable=False)
+    project_phase = db.Column(db.Integer, db.ForeignKey('project_statuses.id'))
     
 
 class CosmosTarget(db.Model):
     __tablename__ = 'cosmos_targets'
     id = db.Column(db.Integer, primary_key=True)
     quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer, db.ForeignKey('habitat_units.id'), nullable=False)
-    target_type = db.Column(db.Integer, db.ForeignKey('habitat_types.id'), nullable=False)
+    habitat_type = db.Column(db.Integer, db.ForeignKey('habitat_types.id'), nullable=False)
     target_date = db.Column(db.DateTime)

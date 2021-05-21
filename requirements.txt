@@ -1,0 +1,8 @@
+flask
+flask-sqlalchemy
+psycopg2
+dash-bootstrap-components
+dash
+geoalchemy2
+pandas
+gunicorn
