@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, server
 
 from dash.dependencies import Input, Output, State
 import dash_table
