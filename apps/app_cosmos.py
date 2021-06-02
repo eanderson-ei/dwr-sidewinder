@@ -14,10 +14,10 @@ from app import app, db
 ### ----------------------------- SETUP ---------------------------------- ###
 
 # Test Data
-df = pd.read_sql_table('view_cosmos_targets', con=db.engine)
+df = pd.read_sql_table('cosmos_targets', con=db.engine)
 
 def plot_cosmos(df):
-    fig = px.bar(df, x='habitat_type', y='quantity', color='cpa_name',
+    fig = px.bar(df, x='habitat_type', y='quantity', color='cpa',
                  title='Conservation Strategy Measurable Objective Contributions')
     fig.update_layout(barmode='relative')
     return fig
@@ -137,7 +137,7 @@ layout = dbc.Container(
 )
 def update_chart(region):
     if region:
-        filt = df['cpa_name'] == region
+        filt = df['cpa'] == region
         fig = plot_cosmos(df[filt])
     else:
         fig = plot_cosmos(df)

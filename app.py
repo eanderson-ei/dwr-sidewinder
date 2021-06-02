@@ -12,12 +12,17 @@ app = dash.Dash(__name__, server=server,
                 suppress_callback_exceptions=True,
                 external_stylesheets=external_stylesheets)
 
-ENV = 'deploy'
+ENV = 'load'
 
 if ENV == 'dev':
     app.server.debug = True
     app.server.config['SQLALCHEMY_DATABASE_URI'] = \
-        'postgresql://postgres:incentives@localhost/test2'
+        'postgresql://postgres:incentives@localhost/dwr_test'
+elif ENV == 'load':
+    with open('secrets/db_uri.txt') as f:
+        uri = f.read()
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    app.server.config['SQLALCHEMY_DATABASE_URI'] = uri
 else:
     app.server.debug = False
     uri = os.environ['DATABASE_URL']

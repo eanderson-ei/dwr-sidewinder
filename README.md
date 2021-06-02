@@ -1,6 +1,11 @@
-# EADME
+# README
 
 A prototype habitat forecasting application for conservation targets and mitigation needs.
+
+TODO
+
+* Add RFMP, CPA for Winter Island Tidal Habitat Restoration
+* Funding sources for project_funding
 
 ## Dev Setup
 
@@ -14,7 +19,7 @@ Download and install PostgreSQL and pgAdmin. The database is hosted with the app
 
 Using the Stack Builder application downloaded with Postgres, install PostGIS (under spatial databases). Do not install PostGIS into the default folder, instead navigate to the location where Postgres is installed (C:/Program Files/). 
 
-Right click on the database in pgAdmin and select 'CREATE SCRIPT'. Clear the contents of the script and run the following (use the play button to run).
+Right click on the database in pgAdmin and select 'Query Tool'. Clear the contents of the script and run the following (use the play button to run).
 
 ```sql
 CREATE EXTENSION postgis
@@ -32,19 +37,54 @@ https://www.youtube.com/watch?v=w25ea_I89iM
 
 ## Next Steps
 
-1. Work with Kristen on initial data import (May 12)
-2. KB inputs data (thru May 19) - enough to share with ESA
-3. Debug read data from Excel
-4. Share xlsx database with ESA
+3. Share xlsx database with ESA
 5. Deploy dash app and database  (May 24/25)
    1. Create database on Heroku
    2. Add PostGIS extension to Heroku (get cc to host) OR change POINT to Float type
-6. Set up notebook for KB to read data from Heroku, manipulate data, and create visuals (DO NOT COMMIT TO GITHUB) (May 25/28)
-7. Create wireframes (week of May 25)
-8. Client feedback on wireframes with dummy data (week of June 14)
+8. Client feedback on wireframes with dummy data (week of June 28)
 9. Update app, documentation, etc. (thru June 30)
 
 ## Tips & Tricks
 
+Row header in Excel file must be the same as the column name in the database
+
+If `db.drop_all()` is not working, in the database query editor use
+
+```SQL
+DROP SCHEMA public CASCADE
+CREATE SCHEMA public
+```
+
+Then create the database again
+
+```
+python
+>>>from apps import db
+>>>from apps.models import *
+>>>db.create_all()
+>>>exit()
+```
+
 ### Set up database
+
+Create a database in Postgres (start with a local database for testing)
+
+Enable PostGIS (`CREATE EXTENSION postgis`; in Query Tool on database)
+
+In a prompt window, start a python session. Use the following to set up the database
+
+```python
+from app import db
+from apps.models import *
+db.create_all()
+exit()
+```
+
+Use the `populate_db.py` script to populate the database. First update the database location (in `apps/__init__.py`) and Excel file location (in populate_db.py; if needed). Then run
+
+```python
+python populate_db.py
+```
+
+
 

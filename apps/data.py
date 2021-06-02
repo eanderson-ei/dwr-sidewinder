@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 class xlForecast:
@@ -22,63 +23,53 @@ class xlForecast:
     
     @property
     def agencies(self):
-        df = pd.read_excel(self.file, 'options', usecols="A")
-        return df
-    
+        return pd.read_excel(self.file, 'options', usecols="A").dropna()
+
     @property
     def implementers(self):
-        df = pd.read_excel(self.file, 'implementers')
-        return df
+        return pd.read_excel(self.file, 'implementers', usecols="B:E")
     
     @property
     def project_statuses(self):
-        df = pd.read_excel(self.file, 'options', usecols="B")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="B").dropna()
     
     @property
     def rfmps(self):
-        df = pd.read_excel(self.file, 'options', usecols="C")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="C").dropna()
     
     @property
     def counties(self):
-        df = pd.read_excel(self.file, 'options', usecols="D")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="D").dropna()
     
     @property
     def conservation_planning_areas(self):
-        df = pd.read_excel(self.file, 'options', usecols="E")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="E").dropna()
     
     @property
-    def waterbodies(self):
-        df = pd.read_excel(self.file, 'options', usecols="J")
-        return df
+    def water_bodies(self):
+        return pd.read_excel(self.file, 'options', usecols="J").dropna()
 
     @property
     def project_elements(self):
-        df = pd.read_excel(self.file, 'options', usecols="F")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="F").dropna()
 
     @property
     def programs(self):
-        df = pd.read_excel(self.file, 'options', usecols="G")
-        return df
+        return pd.read_excel(self.file, 'options', usecols="G").dropna()
     
     @property
     def habitat_types(self):
-        df = pd.read_excel(self.file, 'habitat_types')
-        return df
+        return pd.read_excel(self.file, 'habitat_types', usecols="B:D")
     
     @property
     def mitigation_types(self):
-        df = pd.read_excel(self.file, 'mitigation_types')
-        return df    
+        return pd.read_excel(self.file, 'mitigation_types', usecols="B:D")    
     
     @property
     def projects(self):
-        df = pd.read_excel(self.file, 'projects', 
-                           usecols="A:D, F, H:I, M, O:U")
+        df =  pd.read_excel(self.file, 'projects', 
+                             usecols="A:D, F, H:I, M, O:U")
+        df = df.replace({np.NaN: None})
         return df
         
     @property
@@ -92,26 +83,26 @@ class xlForecast:
     
     @property
     def projects_project_elements(self):
-        df = pd.read_excel(self.file, 'project_project_elements', usecols="B, D")
-        return df
+        return pd.read_excel(self.file, 'project_project_elements', usecols="B, D")
         
     @property
     def projects_programs(self):
-        df = pd.read_excel(self.file, 'projects_programs', usecols="B,D")
+        return pd.read_excel(self.file, 'projects_programs', usecols="B,D")
     
-    @property 
+    @property
     def habitat_parcels(self):
         df = pd.read_excel(self.file, 'habitat_outcomes', usecols="A,B,D")
+        df = df.rename({'parcel_id': 'id'}, axis=1)
         return df
 
     @property
     def habitat_outcomes(self):
-        df = pd.read_excel(self.file, 'habitat_outcomes', usecols="A,E:N")
-        df = df.melt(id_vars=['parcel_id', 'verified'], 
+        df = pd.read_excel(self.file, 'habitat_outcomes', usecols="A,E:O")
+        df = df.melt(id_vars=['parcel_id', 'confidence'], 
                      var_name='habitat_type', value_name='quantity')\
                 .dropna(subset=['quantity'])
         df = df.reset_index().rename({'index':'id'}, axis=1)
-        df = df[['parcel_id', 'verified', 'quantity', 'habitat_type']]
+        df = df[['parcel_id', 'confidence', 'quantity', 'habitat_type']]
         
         # sub habitat_type for reference
         df = self._sub_habitat(df)
@@ -121,6 +112,7 @@ class xlForecast:
     @property
     def mitigation_parcels(self):
         df = pd.read_excel(self.file, 'project_mitigation', usecols="A,B,D")
+        df = df.rename({'parcel_id': 'id'}, axis=1)
         return df
 
     @property
@@ -138,17 +130,16 @@ class xlForecast:
     
     @property
     def projects_permits(self):
-        df = pd.read_excel(self.file, 'projects_permits', usecols="A, C")
-        return df
+        return pd.read_excel(self.file, 'projects_permits', usecols="A, C")
     
     @property
     def credit_approvers(self):
-        df = pd.read_excel(self.file, 'credit_approvers', usecols="A, D")
-        return df
+        return pd.read_excel(self.file, 'credit_approvers', usecols="A, D")
     
     @property
     def credit_purchases(self):
         df = pd.read_excel(self.file, 'credit_purchases', usecols="A:D")
+        df = df.replace({np.NaN: None})
         return df
     
     @property
@@ -167,55 +158,51 @@ class xlForecast:
         return df
     
     @property
+    def permits(self):
+        return pd.read_excel(self.file, 'options', usecols="H").dropna()
+    
+    @property
     def mitigation_needs(self):
         df = pd.read_excel(self.file, 'mitigation_needs', usecols="A, C:AA")
-        df = df.melt(id_vars=['permit_id'], 
+        df = df.melt(id_vars=['permit', 'needed_by'], 
                      var_name='mitigation_type', value_name='quantity')\
                 .dropna(subset=['quantity'])
         df = df.reset_index().rename({'index':'id'}, axis=1)
-        df = df[['permit_id', 'quantity', 'mitigation_type']]
+        df = df[['permit', 'quantity', 'needed_by', 'mitigation_type']]
         
         # sub mitigation_type for reference
         df = self._sub_mitigation(df)
+        df = df.replace({np.NaN: None})
         
         return df        
     
     @property
     def project_commitments(self):
-        df = pd.read_excel(self.file, 'project_commitments', usecols="A:B,D,F")
-        return df    
+        return pd.read_excel(self.file, 'project_commitments', usecols="A:B,D,F")    
     
     @property
     def credit_commitments(self):
-        df = pd.read_excel(self.file, 'credit_commitments', usecols="A,C,D")
-        return df
+        return pd.read_excel(self.file, 'credit_commitments', usecols="A:B,D:E")
     
-    @property
-    def permits(self):
-        df = pd.read_excel(self.file, 'options', usecols="K")
-        return df
     
     @property
     def fpts(self):
-        df = pd.read_excel(self.file, 'projects', usecols="V")
-        return df
+        return pd.read_excel(self.file, 'projects', usecols="V").dropna().drop_duplicates()
 
     @property
     def project_fpts(self):
-        df = pd.read_excel(self.file, 'projects', usecols="A,V")
-        return df
+        return pd.read_excel(self.file, 'projects', usecols="A,V").dropna()
     
     @property
     def funding_source(self):
-        df = pd.read_excel(self.file, 'funding_sources')
-        return df
+        return pd.read_excel(self.file, 'funding_sources')
     
     @property
     def project_funding(self):
-        df = pd.read_excel(self.file, 'proejct_funding', usecols="A:B,D,F:G")
-        return df
+        return pd.read_excel(self.file, 'project_funding', usecols="A:B,D,F:G")
     
     @property
     def cosmos_targets(self):
-        df = pd.read_excel(self.file, 'cosmos_targets', usecols="A:E,G")
+        df = pd.read_excel(self.file, 'cosmos_targets', usecols="A:C,E:F")
+        df = df.replace({np.NaN: None})
         return df
