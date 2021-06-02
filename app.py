@@ -12,7 +12,7 @@ app = dash.Dash(__name__, server=server,
                 suppress_callback_exceptions=True,
                 external_stylesheets=external_stylesheets)
 
-ENV = 'load'
+ENV = 'deploy'
 
 if ENV == 'dev':
     app.server.debug = True
