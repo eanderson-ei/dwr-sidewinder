@@ -4,8 +4,12 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_daq as daq
+import dash_leaflet as dl
+from dash_extensions.javascript import Namespace
+import dash_leaflet.express as dlx
+from dash_extensions.javascript import arrow_function
 import plotly.express as px
-import folium
+import plotly.graph_objects as go
 import pandas as pd
 
 from app import app, db
@@ -13,30 +17,62 @@ from app import app, db
 
 ### ----------------------------- SETUP ---------------------------------- ###
 
-# Test Data
-df = pd.read_sql_table('cosmos_targets', con=db.engine)
+# Load data
+cosmos_targets = pd.read_sql_table('view_cosmos_targets', con=db.engine)
+project_outcomes = pd.read_sql_table('view_project_outcomes', con=db.engine)
+
+# prep data for chart
+df = project_outcomes.merge(
+    cosmos_targets[['cpa_name', 'long_form', 'quantity']], 
+    how='right',
+    on=['cpa_name', 'long_form'])
+
+df['contribution'] = df['total_outcomes'] / df['quantity']
+
 
 def plot_cosmos(df):
-    fig = px.bar(df, x='habitat_type', y='quantity', color='cpa',
-                 title='Conservation Strategy Measurable Objective Contributions')
-    fig.update_layout(barmode='relative')
+    
+    
+    
+    fig = go.Figure()
+    bar_width = .7
+    
+    fig.add_traces(go.Bar(
+            x=df['contribution'],
+            y=df['long_form'],
+            name='Outcomes',
+            orientation='h',
+            width=bar_width
+        ))
+
+    fig.update_layout(barmode='stack')
+    
+    
     return fig
+
+
+def get_project_points(cpa: str):
+    df_cpa = project_outcomes[project_outcomes['cpa_name'] == cpa] if cpa else project_outcomes
+    df_cpa = df_cpa[['project_nickname', 'cpa_name', 'coordinate_x', 'coordinate_y']].dropna().drop_duplicates()
+    dicts = df_cpa.to_dict('rows')
+    for item in dicts:
+        item['tooltip'] = item['project_nickname']
+        item['popup'] = item['cpa_name']
+    geojson = dlx.dicts_to_geojson(dicts, lat='coordinate_x', lon="coordinate_y")
+    return dlx.geojson_to_geobuf(geojson)
+
+
+
 
 ### ----------------------------- LAYOUT --------------------------------- ###
 
 ### SELECT REGION ###
-_regions = [
-    'Upper Sacramento River',
-    'Lower Sacramento River',
-    'Feather River',
-    'Lower Sacramento/Delta North',
-    'Upper San Joaquin River'
-]
+_regions = cosmos_targets['cpa_name'].unique()
 _region_options = [{'label': region, 'value': region} for region in _regions]
 
 select_region = dcc.Dropdown(
     id='select-region',
-    placeholder='Select a CPA or RFMP',
+    placeholder='Select a CPA',
     options=_region_options
 )
 
@@ -71,24 +107,25 @@ date_slider = daq.Slider(
 
 
 ### MAP ###
-location = [36.872839, -119.857740]
 
-def create_map(location):        
-    m = folium.Map(location=location,
-                    tiles='Stamen Terrain',
-                    width='100%',
-                    height='100%',
-                    prefer_canvas=True,
-                    zoom_control=False)
-    
-    return m.get_root().render()
+# set up scatter points
+ns = Namespace('dlx', 'scatter')
+geojson = dl.GeoJSON(data=get_project_points(None), id='geojson', format='geobuf',
+                     zoomToBounds=True,
+                     cluster=True,
+                     zoomToBoundsOnClick=True,
+                     superClusterOptions=dict(radius=150))
 
-map = html.Iframe(
-    id='map', 
-    srcDoc=create_map(location), 
-    height='400',
-    style={'background': '#FFFFFF', 'border': '0'}
-    )
+# add cpa boundaries
+cpa_boundaries = dl.GeoJSON(id='rfmp',
+                            url="/assets/cpa.json", 
+                            zoomToBounds=True,                            
+                            hoverStyle=arrow_function(dict(weight=5, color='#666', dashArray='')))  # must be in assets folder 
+
+# create map
+map = dl.Map(id='map', 
+             children= [dl.TileLayer(), cpa_boundaries, geojson],
+             style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block"})
 
 
 ### PROJECT WINDOW ###
@@ -110,20 +147,18 @@ projects_card = dbc.Card(
 
 
 ### LAYOUT ###
-layout = dbc.Container(
+layout = html.Div(
     dbc.Row(
         [
             dbc.Col([
                 select_region, 
                 cosmos_chart, 
                 dbc.Row(date_slider, justify='center', align='center')
-                ], width=8
+                ], width={'size': 7, 'offset': 1}
             ),
             dbc.Col([
-                dbc.Row(map, justify='center', align='center'),
-                html.Br(),
-                projects_card
-                ], width=4
+                map
+                ], width=3
             )
         ]
     )
@@ -137,8 +172,7 @@ layout = dbc.Container(
 )
 def update_chart(region):
     if region:
-        filt = df['cpa'] == region
-        fig = plot_cosmos(df[filt])
+        filt = df['cpa_name'] == region
+        return plot_cosmos(df[filt])
     else:
-        fig = plot_cosmos(df)
-    return fig
+        return plot_cosmos(df)

@@ -9,7 +9,7 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import os
 
-from apps import app_db, app_cosmos
+from apps import app_db, app_cosmos, app_map
 
 
 ### ---------------------------- NAV BAR ------------------------------- ###
@@ -20,7 +20,8 @@ LOGO = app.get_asset_url('logo.png')  # update logo.png in assets/
 # nav item links
 nav_items = dbc.Container([
     dbc.NavItem(dbc.NavLink('Cosmos', href='/')),
-    dbc.NavItem(dbc.NavLink('Database', href='/db'))
+    dbc.NavItem(dbc.NavLink('Database', href='/db')),
+    dbc.NavItem(dbc.NavLink('Map', href='/map'))
 ]
 )
 
@@ -74,11 +75,11 @@ def display_page(pathname):
         return app_cosmos.layout
     elif pathname == '/db':
          return app_db.layout
-    # elif pathname == '/apps/app2':
-    #      return layout2
+    elif pathname == '/map':
+         return app_map.layout
     else:
         return '404'
     
     
 if __name__== '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)

@@ -2,10 +2,20 @@
 
 A prototype habitat forecasting application for conservation targets and mitigation needs.
 
+[Plotly HTML Reports](https://plotly.com/python/v3/html-reports/)
+
+[DataPane](https://datapane.com/accounts/signup/)
+
 TODO
 
 * Add RFMP, CPA for Winter Island Tidal Habitat Restoration
 * Funding sources for project_funding
+* 
+* Limit outcomes to 100% and show actual add'l quantity as annotation to the right of the graph
+* Wire date slider to filter projects by completion date
+* Zoom map to CPA after selection
+* Add mitigation page
+* Update 
 
 ## Dev Setup
 
@@ -37,33 +47,19 @@ https://www.youtube.com/watch?v=w25ea_I89iM
 
 ## Next Steps
 
-3. Share xlsx database with ESA
-5. Deploy dash app and database  (May 24/25)
-   1. Create database on Heroku
-   2. Add PostGIS extension to Heroku (get cc to host) OR change POINT to Float type
-8. Client feedback on wireframes with dummy data (week of June 28)
-9. Update app, documentation, etc. (thru June 30)
+
+
+## Views
+
+Projects 
+
+Habitat Outcomes
+
+Mitigation Needs
 
 ## Tips & Tricks
 
 Row header in Excel file must be the same as the column name in the database
-
-If `db.drop_all()` is not working, in the database query editor use
-
-```SQL
-DROP SCHEMA public CASCADE
-CREATE SCHEMA public
-```
-
-Then create the database again
-
-```
-python
->>>from apps import db
->>>from apps.models import *
->>>db.create_all()
->>>exit()
-```
 
 ### Set up database
 
@@ -84,6 +80,32 @@ Use the `populate_db.py` script to populate the database. First update the datab
 
 ```python
 python populate_db.py
+```
+
+### Update database
+
+
+
+If `db.drop_all()` is not working, in the database query editor use
+
+```SQL
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+```
+
+Then create the database again (see above).
+
+Make sure that you either (1) from app import server or (2) set up Procfile as gunicorn: web index:app.server (I like the second since it is confusing to import something that is not used directly by index.py)
+
+### Maps
+
+To convert a shapefile to a GeoJSON, use `geopandas`:
+
+```python
+import geopandas as gpd
+shp = gpd.read_file('shapefile.shp')
+shp = shp.to_crs(epsg='4236')  # converts to WGS84 for web display
+shp.to_file('geojson.json', driver="GeoJSON")
 ```
 
 
