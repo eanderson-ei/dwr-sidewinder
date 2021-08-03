@@ -15,7 +15,7 @@ projects_programs = db.Table(
 project_fpts = db.Table(
     'project_fpts',
     db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
-    db.Column('data_form_id', db.Integer, db.ForeignKey('fpts.data_form_id'), primary_key=True)
+    db.Column('datcol_id', db.Integer, db.ForeignKey('fpts.datcol_id'), primary_key=True)
 )
 
 project_project_elements = db.Table(
@@ -221,7 +221,7 @@ class ProjectCommitment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     parcel_id = db.Column(db.Integer, db.ForeignKey('mitigation_parcels.id'), nullable=False)
     proportion_committed = db.Column(db.Float)
-    committed_to = db.Column(db.Integer, db.ForeignKey('permits.id'), nullable=False)
+    committed_to = db.Column(db.Integer, db.ForeignKey('permits.id'))
 
 
 class CreditCommitment(db.Model):
@@ -234,7 +234,7 @@ class CreditCommitment(db.Model):
 
 class FPTS(db.Model):
     __tablename__ = 'fpts'
-    data_form_id = db.Column(db.Integer, primary_key=True)
+    datcol_id = db.Column(db.Integer, primary_key=True)
     
 
 class FundingSource(db.Model):

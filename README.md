@@ -63,6 +63,8 @@ Row header in Excel file must be the same as the column name in the database
 
 ### Set up database
 
+> SAVE ALL VIEWS TO `sql/` BEFORE BLOWING AWAY DATABASE!
+
 Create a database in Postgres (start with a local database for testing)
 
 Enable PostGIS (`CREATE EXTENSION postgis`; in Query Tool on database)
@@ -76,7 +78,7 @@ db.create_all()
 exit()
 ```
 
-Use the `populate_db.py` script to populate the database. First update the database location (in `apps/__init__.py`) and Excel file location (in populate_db.py; if needed). Then run
+Use the `populate_db.py` script to populate the database. First update the database location (in `app.py`) and Excel file location (in populate_db.py; if needed). Then run
 
 ```python
 python populate_db.py

@@ -117,7 +117,7 @@ class xlForecast:
 
     @property
     def project_mitigation(self):
-        df = pd.read_excel(self.file, 'project_mitigation', usecols="A,E:Z")  # expand
+        df = pd.read_excel(self.file, 'project_mitigation', usecols="A,E:AA")  # expand
         df = df.melt(id_vars=['parcel_id'], 
                      var_name='mitigation_type', value_name='quantity')\
                 .dropna(subset=['quantity'])
@@ -163,7 +163,7 @@ class xlForecast:
     
     @property
     def mitigation_needs(self):
-        df = pd.read_excel(self.file, 'mitigation_needs', usecols="A, C:AA")
+        df = pd.read_excel(self.file, 'mitigation_needs', usecols="A, C:AB")
         df = df.melt(id_vars=['permit', 'needed_by'], 
                      var_name='mitigation_type', value_name='quantity')\
                 .dropna(subset=['quantity'])
