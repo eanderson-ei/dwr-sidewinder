@@ -2,6 +2,7 @@ from app import db
 from apps.data import xlForecast
 from apps.models import *
 
+db.create_all()
 
 F = 'data/Database of Expected Projects.xlsx'
 
@@ -35,9 +36,9 @@ prop_to_class_map = {
     }
 
 prop_to_table_map = {
-    'project_programs': projects_programs,
+    'projects_programs': projects_programs,
     'project_fpts': project_fpts,
-    'project_project_elements': project_project_elements,
+    'projects_project_elements': project_project_elements,
     'credit_approvers': credit_approver,
     'projects_counties': projects_counties,
     'projects_permits': projects_permits
@@ -51,4 +52,10 @@ for prop, tbl_class in prop_to_class_map.items():
     print(prop)
     for row in getattr(data, prop).to_dict('records'):
         db.session.add(tbl_class(**row))
+    db.session.commit()
+    
+for prop, tbl_name in prop_to_table_map.items():
+    print(prop)
+    for row in getattr(data, prop).to_dict('records'):
+        db.session.execute(tbl_name.insert().values(**row))
     db.session.commit()
